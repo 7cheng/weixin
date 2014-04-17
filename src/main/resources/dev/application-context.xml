@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd"
+       default-lazy-init="true">
+    <description>Spring公共配置</description>
+
+    <!-- 激活利用注解进行装配 -->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.shlaunch.weixin.local.dao"/>
+    <context:component-scan base-package="com.shlaunch.weixin.local.service"/>
+    <context:component-scan base-package="com.shlaunch.weixin.local.web"/>
+    <context:component-scan base-package="com.shlaunch.weixin.local.system"/>
+
+    <!-- 该 BeanPostProcessor 将自动对标注 @Autowired 的 Bean 进行注入 -->
+    <!--
+        <bean
+        class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"
+        />
+    -->
+
+    <!--mysql-->
+    <bean id="DS_mysql" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <!-- 指定连接数据库的驱动-->
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <!-- 指定连接数据库的URL-->
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <!-- ;DatabaseName=shlaunch_attendance;SelectMethod=cursor -->
+        <!-- 指定连接数据库的用户名-->
+        <property name="user" value="${jdbc.username}"/>
+        <!-- 指定连接数据库的密码-->
+        <property name="password" value="${jdbc.password}"/>
+        <!-- <property name="password" value="liting" /> -->
+        <!-- 指定连接池中保留的最大连接数. Default:15-->
+        <property name="maxPoolSize" value="15"/>
+        <!-- 指定连接池中保留的最小连接数-->
+        <property name="minPoolSize" value="10"/>
+        <!-- 指定连接池的初始化连接数  取值应在minPoolSize 与 maxPoolSize 之间.Default:3-->
+        <property name="initialPoolSize" value="5"/>
+        <!-- 最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。 Default:0-->
+        <property name="maxIdleTime" value="60"/>
+        <!-- 当连接池中的连接耗尽的时候c3p0一次同时获取的连接数. Default:3-->
+        <property name="acquireIncrement" value="5"/>
+        <!--
+            JDBC的标准,用以控制数据源内加载的PreparedStatements数量。但由于预缓存的statements属于单个connection而不是整个连接池所以设置这个参数需要考虑到多方面的因数.如果maxStatements与maxStatementsPerConnection均为0,则缓存被关闭。Default:0
+        -->
+        <property name="maxStatements" value="0"/>
+        <!-- 每60秒检查所有连接池中的空闲连接.Default:0 -->
+        <property name="idleConnectionTestPeriod" value="60"/>
+        <!-- 定义在从数据库获取新连接失败后重复尝试的次数。 Default:30 -->
+        <property name="acquireRetryAttempts" value="30"/>
+        <!--
+            获取连接失败将会引起所有等待连接池来获取连接的线程抛出异常。但是数据源仍有效保留,并在下次调用getConnection()的时候继续尝试获取连接。如果设为true,那么在尝试获取连接失败后该数据源将申明已断开并永久关闭。Default:false
+        -->
+        <property name="breakAfterAcquireFailure" value="true"/>
+        <!--
+            银性能消耗大请只在需要的时候是哟个它。如果设为true,那么在每个connection提交的时候都将校验其有效性。建议使用idleConnectionTestPeriod或automaticTestTable等提升连接测试的性能。
+            Default:false
+        -->
+        <property name="testConnectionOnCheckout" value="false"/>
+
+    </bean>
+
+    <bean id="jdbcTemplate" class="com.wl.core.db.jdbc.JdbcTemplate"
+          autowire="byType" abstract="false" lazy-init="false">
+        <property name="dataSource" ref="DS_mysql"/>
+        <property name="dialect" value="mysql"/>
+    </bean>
+
+    <bean id="jdbcDBConImpl" class="com.wl.core.db.jdbc.JdbcDBConImpl"/>
+
+    <!-- 事务管理起作用了,操蛋. -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="DS_mysql"></property>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!-- 初始化本地配置 -->
+    <import resource="classpath:application_security_local.xml"/>
+
+    <!-- 安全以及通用配置 -->
+    <!--
+    <import resource="classpath*:application-core.xml"/>
+    <import resource="classpath*:com/wl/core/security/common/common-context.xml" />
+    -->
+</beans>

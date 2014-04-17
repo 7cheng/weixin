@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+    <!-- 自动扫描且只扫描@Controller @Service-->
+    <context:component-scan base-package="com.shlaunch.weixin.local.web" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+
+    <mvc:default-servlet-handler/>
+    <mvc:annotation-driven/>
+    <context:annotation-config/>
+
+    <!--
+    <mvc:resources mapping="/resources/**" location="/resources/" />
+    -->
+    <bean id="mappingJacksonHttpMessageConverter"
+          class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>text/html;charset=UTF-8</value>
+                <value>application/json;charset=UTF-8</value>
+                <value>application/javascript;charset=UTF-8</value>
+                <value>text/json;charset=UTF-8</value>
+                <value>application/xml;charset=UTF-8</value>
+                <value>text/javascript;charset=UTF-8</value>
+            </list>
+        </property>
+        <property name="objectMapper" ref="customObjectMapper"/>
+    </bean>
+
+
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
+    <!-- @ResponseBody 注解配置 -->
+    <bean id="handlerAdapter" class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+        <property name="cacheSeconds" value="0"/>
+        <property name="messageConverters">
+            <list>
+                <ref bean="stringHttpMessageConverter"/>
+                <ref bean="mappingJacksonHttpMessageConverter"/>
+                <!-- json转换器 -->
+            </list>
+        </property>
+    </bean>
+    <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter">
+        <constructor-arg value="UTF-8"/>
+    </bean>
+
+    <!-- @ResponseBody 注解返回值类型 -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+        <property name="messageConverters">
+            <util:list id="beanList">
+                <ref bean="mappingJacksonHttpMessageConverter"/>
+            </util:list>
+        </property>
+    </bean>
+    <bean id="customObjectMapper" class="com.shlaunch.weixin.core.web.jackson.map.CustomObjectMapper"></bean>
+    <!--
+    <bean id="objectMapper" class="patch.shlaunch.com.org.codehaus.jackson.map.ObjectMapper"></bean>
+    -->
+
+
+    <!-- 定义首页 -->
+    <!--
+	<mvc:view-controller path="/" view-name="redirect:/index.jsp" />
+    -->
+    <!-- 定义JSP -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!-- 总错误处理-->
+    <!--
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="defaultErrorView">
+            <value>/error/500</value>
+        </property>
+        <property name="defaultStatusCode">
+            <value>500</value>
+        </property>
+        <property name="warnLogCategory">
+            <value>org.springframework.web.servlet.handler.SimpleMappingExceptionResolver</value>
+        </property>
+    </bean>
+    -->
+    <!-- 支持上传文件 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+</beans>
